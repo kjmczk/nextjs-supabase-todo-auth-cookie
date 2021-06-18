@@ -9,22 +9,61 @@ type Props = {
 };
 
 export default function TodoItem({ todo }: Props) {
-  const [isCompleted, setIsCompleted] = useState(todo.is_complete);
+  const [isComplete, setIsComplete] = useState(todo.is_complete);
+  const [task, setTask] = useState(todo.task);
   const { todos, setTodos, setErrorMessage } = useTodoContext();
 
-  const toggle = async () => {
+  const toggleIsComplete = async () => {
     try {
       const { data, error } = await supabase
         .from('todos')
-        .update({ is_complete: !isCompleted })
+        .update({ is_complete: !isComplete })
         .eq('id', todo.id)
         .single();
       if (error) {
         throw new Error(error.message);
       }
-      setIsCompleted(data.is_complete);
+      setIsComplete(data.is_complete);
+      console.log('updated!');
     } catch (error) {
       setErrorMessage(error.message);
+    }
+  };
+
+  const updateTask = async (taskText: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('todos')
+        .update({ task: taskText })
+        .eq('id', todo.id)
+        .single();
+      if (error) {
+        throw new Error(error.message);
+      }
+      setTask(data.task);
+      console.log('updated!');
+    } catch (error) {
+      setErrorMessage(error.message);
+    }
+  };
+
+  const updateTaskOnBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const taskText = e.currentTarget.value;
+
+    if (taskText !== task) {
+      e.preventDefault();
+      updateTask(taskText);
+    }
+  };
+
+  const updateTaskOnPressEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      const taskText = e.currentTarget.value;
+
+      if (taskText !== task) {
+        e.preventDefault();
+        updateTask(taskText);
+      }
     }
   };
 
@@ -38,21 +77,27 @@ export default function TodoItem({ todo }: Props) {
   };
 
   return (
-    <li className="w-full hover:bg-gray-100 focus:outline-none focus:bg-gray-100 transition duration-150 ease-in-out">
-      <div className="flex items-center p-4">
+    <li className="w-full hover:bg-gray-100 transition duration-150 ease-in-out">
+      <div className="flex items-center px-4 py-2">
         <input
-          className="cursor-pointer mr-2"
+          className="cursor-pointer mr-1"
           type="checkbox"
-          checked={isCompleted ? true : false}
+          checked={isComplete}
           onChange={(e) => {
             e.preventDefault();
-            toggle();
+            toggleIsComplete();
           }}
         />
 
-        <span className="w-full text-sm leading-5 font-medium truncate">
-          {todo.task}
-        </span>
+        <input
+          className={`bg-transparent px-2 py-1 w-full text-sm leading-5 font-medium truncate ${
+            isComplete ? 'line-through' : undefined
+          }`}
+          type="text"
+          defaultValue={task}
+          onBlur={updateTaskOnBlur}
+          onKeyDown={updateTaskOnPressEnter}
+        />
 
         <button
           onClick={(e) => {
