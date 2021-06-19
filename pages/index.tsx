@@ -3,7 +3,6 @@ import Link from 'next/link';
 import useSWR from 'swr';
 import { Auth, Card, Space, Typography } from '@supabase/ui';
 import TodoList from '../components/TodoList';
-import { useTodoContext } from '../context/TodoContext';
 import { supabase } from '../utils/supabaseClient';
 
 type AuthView = 'sign_in' | 'forgotten_password' | undefined;
@@ -16,17 +15,17 @@ const fetcher = (url: string, token: string) =>
   }).then((res) => res.json());
 
 export default function Home() {
+  const [authView, setAuthView] = useState<AuthView>('sign_in');
+
   const { user, session } = Auth.useUser();
   const { data, error } = useSWR(
     session ? ['/api/user', session.access_token] : null,
     fetcher
   );
-  const [authView, setAuthView] = useState<AuthView>('sign_in');
-  const { setErrorMessage } = useTodoContext();
 
   const logout = async () => {
     const { error } = await supabase.auth.signOut();
-    if (error) setErrorMessage(error.message);
+    if (error) console.log('Error logging out:', error.message);
   };
 
   useEffect(() => {
@@ -70,7 +69,7 @@ export default function Home() {
               <Auth.UpdatePassword supabaseClient={supabase} />
             )}
 
-            <TodoList user={supabase.auth.user()} />
+            <TodoList user={user} />
 
             <button
               className="bg-gray-900 text-white w-full rounded p-2 mt-8"
