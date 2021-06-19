@@ -6,8 +6,6 @@ import type { Todo } from '../types';
 type ContextProps = {
   todos: Todo[];
   setTodos: Dispatch<SetStateAction<Todo[]>>;
-  newTaskText: string;
-  setNewTaskText: Dispatch<SetStateAction<string>>;
   errorMessage: string;
   setErrorMessage: Dispatch<SetStateAction<string>>;
 };
@@ -24,7 +22,6 @@ export function useTodoContext(): ContextProps {
 
 export function TodoProvider({ children }: Props): ReactElement {
   const [todos, setTodos] = useState<Todo[]>([]);
-  const [newTaskText, setNewTaskText] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
   return (
@@ -32,8 +29,6 @@ export function TodoProvider({ children }: Props): ReactElement {
       value={{
         todos,
         setTodos,
-        newTaskText,
-        setNewTaskText,
         errorMessage,
         setErrorMessage,
       }}
