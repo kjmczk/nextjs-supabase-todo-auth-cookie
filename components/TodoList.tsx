@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Alert from '../components/Alert';
 import TodoItem from '../components/TodoItem';
 import { useTodoContext } from '../context/TodoContext';
@@ -11,14 +11,8 @@ type Props = {
 };
 
 export default function TodoList({ user }: Props) {
-  const {
-    todos,
-    setTodos,
-    newTaskText,
-    setNewTaskText,
-    errorMessage,
-    setErrorMessage,
-  } = useTodoContext();
+  const [newTaskText, setNewTaskText] = useState('');
+  const { todos, setTodos, errorMessage, setErrorMessage } = useTodoContext();
 
   const fetchTodos = useCallback(async () => {
     const { data: todos, error } = await supabase
@@ -53,6 +47,15 @@ export default function TodoList({ user }: Props) {
 
   useEffect(() => {
     fetchTodos();
+    const mySubscription = supabase
+      .from('todos')
+      .on('*', () => {
+        console.log('Change received!', fetchTodos());
+      })
+      .subscribe();
+    return () => {
+      supabase.removeSubscription(mySubscription);
+    };
   }, [fetchTodos]);
 
   return (
